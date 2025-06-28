@@ -29,6 +29,20 @@ docker exec -w /app python-backup python3 -m src.backup.full
 docker exec -w /app python-backup python3 -m src.backup.incremental
 ```
 
+## Flujo Recomendado de Pruebas
+
+Para garantizar un funcionamiento correcto del sistema, se recomienda seguir estrictamente este orden de ejecución:
+
+1. **Construcción de Contenedores**:
+2. **Inicio de Servicios**:
+   Esperar unos segundos para que MySQL inicialice completamente.
+3. **Ejecución de Backup Completo**:
+   Este paso es **obligatorio** antes de realizar backups incrementales.
+4. **Ejecución de Backup Incremental**:
+   Solo ejecutar después de tener al menos un backup completo.
+
+> **⚠️ Importante**: Este es el único flujo que ha sido completamente probado. Otros órdenes de ejecución o escenarios no han sido validados y podrían resultar en errores o comportamientos inesperados.
+
 ## Verificación
 
 Para verificar que el backup se realizó correctamente:
