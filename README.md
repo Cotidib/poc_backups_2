@@ -117,7 +117,6 @@ Los binary logs son archivos que registran todos los cambios realizados en la ba
 2. **Creación del Backup**:
    - Utiliza `mysqlbinlog` para extraer los cambios entre las dos posiciones
    - Maneja automáticamente cambios entre múltiples archivos de log
-   - Genera un archivo SQL con los cambios incrementales
 
    > **¿Cómo funciona el manejo de múltiples archivos de log?**  
    > MySQL genera múltiples archivos de binary log (ejemplo: mysql-bin.000001, mysql-bin.000002) para mejor gestión. El sistema:
@@ -128,6 +127,8 @@ Los binary logs son archivos que registran todos los cambios realizados en la ba
    >   3. Combina los cambios manteniendo el orden cronológico
    > 
    > Esto garantiza que no se pierdan cambios cuando MySQL rota sus archivos de log y es completamente transparente para el usuario.
+   
+   - Genera un archivo SQL con los cambios incrementales
 
 3. **Restauración**:
    - Restaura primero el último backup completo
