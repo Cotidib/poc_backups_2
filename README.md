@@ -41,6 +41,12 @@ Para garantizar un funcionamiento correcto del sistema, se recomienda seguir est
 4. **Ejecución de Backup Incremental**:
    Solo ejecutar después de tener al menos un backup completo.
 
+   > **📝 Nota sobre cambios simulados**: El script de backup incremental incluye simulaciones de cambios en la base de datos:
+   > - Actualiza un empleado existente (`UPDATE employees SET position = 'Senior Developer' WHERE name = 'Juan Perez'`)
+   > - Inserta un nuevo empleado (`INSERT INTO employees (name, position) VALUES ('Carlos Lopez', 'Data Scientist')`)
+   > 
+   > Si desea ejecutar el backup incremental más de una vez, necesitará modificar estas sentencias en `src/backup/incremental.py` para simular cambios diferentes. De lo contrario, no se detectarán nuevos cambios para respaldar.
+
 > **⚠️ Importante**: Este es el único flujo que ha sido completamente probado. Otros órdenes de ejecución o escenarios no han sido validados y podrían resultar en errores o comportamientos inesperados.
 
 ## Verificación
