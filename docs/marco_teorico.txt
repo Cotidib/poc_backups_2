@@ -1,0 +1,47 @@
+Políticas de Backup y Recuperación ante Desastres en Bases de Datos
+
+La información almacenada en una base de datos constituye un activo crítico para cualquier organización. Por esta razón, es indispensable establecer políticas de respaldo (backup) y recuperación ante desastres (disaster recovery) que aseguren la disponibilidad, integridad y continuidad del servicio, incluso ante eventos inesperados como fallos de hardware, errores humanos, ataques cibernéticos o desastres naturales.
+
+1. Estrategias de Disponibilidad y Recuperación
+Una estrategia efectiva de respaldo y recuperación debe estar alineada con los objetivos de continuidad del negocio. Para ello, se definen dos métricas clave:
+
+RTO (Recovery Time Objective): tiempo máximo tolerable para restaurar un sistema después de una interrupción.
+
+RPO (Recovery Point Objective): cantidad máxima de datos que se puede perder, medido en tiempo desde el último backup exitoso [1].
+
+En función de estos objetivos, se definen políticas que combinan respaldos periódicos con tecnologías como la replicación, el clustering de bases de datos, el uso de centros de datos redundantes y la automatización de procesos de recuperación.
+
+2. Tipos de Backup
+Existen diferentes tipos de backup, que pueden combinarse para optimizar espacio, tiempo y cobertura:
+
+Backup completo (full backup): copia íntegra de la base de datos. Es el más seguro, pero también el más costoso en tiempo y almacenamiento.
+
+Backup incremental: copia únicamente los datos que han cambiado desde el último backup (ya sea completo o incremental). Es eficiente, pero requiere restaurar en orden todos los backups posteriores al último completo.
+
+Backup diferencial: copia los datos modificados desde el último backup completo. Requiere menos archivos para restaurar que el incremental, pero puede crecer en tamaño rápidamente [2].
+
+Backup en caliente (online): se realiza mientras la base de datos está activa, sin interrumpir el servicio. Requiere soporte por parte del sistema de gestión de base de datos (SGBD).
+
+Backup en frío (offline): se realiza cuando la base de datos está detenida. Es más simple, pero requiere tiempo de inactividad.
+
+Backup lógico vs. físico: el backup lógico exporta datos como sentencias SQL (p. ej., mysqldump), mientras que el físico copia los archivos binarios del sistema (p. ej., pg_basebackup en PostgreSQL) [3].
+
+3. Recuperación de Datos: Parcial y Total
+La recuperación total implica restaurar toda la base de datos a un punto en el tiempo determinado (p. ej., el momento del último backup completo). Esto puede ser necesario ante un fallo generalizado del sistema.
+
+La recuperación parcial consiste en restaurar únicamente una parte específica de la base de datos, como una tabla o un conjunto de registros. Esto suele usarse para corregir errores puntuales sin afectar al resto de los datos.
+
+Algunos SGBD permiten también la recuperación punto en el tiempo (PITR, Point-in-Time Recovery), que permite restaurar la base de datos a un estado anterior exacto mediante la combinación de backups y registros de transacciones (logs) [4].
+
+4. Buenas Prácticas en Políticas de Backup
+Entre las buenas prácticas ampliamente recomendadas se encuentran:
+
+Automatizar los procesos de respaldo y verificación.
+
+Guardar copias de backup en ubicaciones geográficamente distintas (offsite o en la nube).
+
+Realizar pruebas periódicas de recuperación.
+
+Usar cifrado para proteger la confidencialidad de los backups.
+
+Documentar los procedimientos y responsabilidades del personal [5].

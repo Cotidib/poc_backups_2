@@ -1,12 +1,12 @@
 import os
 import subprocess
 from datetime import datetime
-from db_config import DatabaseConfig
-from db_utils import execute_query, get_table_list, get_table_structure, get_table_data, show_table_data
+from src.db.config import DatabaseConfig
+from src.db.utils import execute_query, get_table_list, get_table_structure, get_table_data, show_table_data
 import time
 from typing import Optional, Tuple
-from disaster_simulator import simulate_disaster
-from backup_completo import restore_full_backup
+from src.db.disaster_simulator import simulate_disaster
+from src.backup.full import restore_full_backup
 
 def get_binary_log_info():
     """

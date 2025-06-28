@@ -1,6 +1,6 @@
 import subprocess
-from db_config import DatabaseConfig
-from db_utils import get_table_list, execute_query
+from src.db.config import DatabaseConfig
+from src.db.utils import get_table_list, execute_query
 
 def simulate_disaster(tables=None, operation="TRUNCATE"):
     """

@@ -16,12 +16,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copiar archivos necesarios
-COPY requirements.txt .
-COPY backup_completo.py .
-COPY backup_incremental.py .
-COPY db_config.py .
-COPY db_utils.py .
-COPY disaster_simulator.py .
+COPY ../requirements.txt .
+COPY ../src/ src/
+COPY ../sql/ sql/
 
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt

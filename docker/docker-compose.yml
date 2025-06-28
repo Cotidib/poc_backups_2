@@ -11,7 +11,7 @@ services:
       MYSQL_USER: test_user
       MYSQL_PASSWORD: test_password
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../sql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
@@ -24,15 +24,13 @@ services:
       retries: 5
 
   backup:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: python-backup
     volumes:
-      - ./backup_completo.py:/app/backup_completo.py
-      - ./backup_incremental.py:/app/backup_incremental.py
-      - ./db_config.py:/app/db_config.py
-      - ./db_utils.py:/app/db_utils.py
-      - ./disaster_simulator.py:/app/disaster_simulator.py
-      - ./backups:/app/backups
+      - ../src:/app/src
+      - ../backups:/app/backups
       - mysql_data:/var/lib/mysql:ro
     depends_on:
       - db

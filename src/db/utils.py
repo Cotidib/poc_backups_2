@@ -1,5 +1,5 @@
 import subprocess
-from db_config import DatabaseConfig
+from src.db.config import DatabaseConfig
 from typing import Optional, List
 
 def get_table_list():

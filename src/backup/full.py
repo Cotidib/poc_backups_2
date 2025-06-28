@@ -2,9 +2,9 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from db_config import DatabaseConfig
-from db_utils import get_table_list, get_table_structure, get_table_data, show_table_data, execute_query
-from disaster_simulator import simulate_disaster, verify_disaster_simulation
+from src.db.config import DatabaseConfig
+from src.db.utils import get_table_list, get_table_structure, get_table_data, show_table_data, execute_query
+from src.db.disaster_simulator import simulate_disaster, verify_disaster_simulation
 
 def save_backup_position(position):
     """Guarda la posición actual del binary log"""

@@ -1,0 +1,13 @@
+Objetivo General
+Investigar y analizar las políticas de respaldo y recuperación ante desastres aplicables a bases de datos, con el fin de comprender las estrategias que permiten asegurar la disponibilidad de la información y garantizar la continuidad operativa frente a fallos o eventos imprevistos.
+
+Objetivos Específicos
+Identificar los diferentes tipos de backups utilizados en entornos de bases de datos y sus principales características.
+
+Analizar los métodos y herramientas existentes para llevar a cabo recuperaciones parciales y totales de datos.
+
+Estudiar las métricas clave (RTO y RPO) que definen los niveles de servicio en planes de contingencia de bases de datos.
+
+Evaluar buenas prácticas en la implementación de políticas de respaldo y recuperación, considerando aspectos técnicos y organizacionales.
+
+Examinar ejemplos concretos de mecanismos de backup y restauración en sistemas de gestión de bases de datos ampliamente utilizados, como MySQL.
