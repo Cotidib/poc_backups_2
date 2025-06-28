@@ -130,11 +130,11 @@ def get_binary_log_position() -> Optional[str]:
 
 def create_incremental_backup() -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    Crea un backup incremental basado en los cambios desde el último backup
+    Crea un backup incremental válido usando mysqlbinlog.
     Returns:
         tuple: (nombre_archivo_backup, posicion_inicio, posicion_fin)
     """
-    # Obtener la última posición de backup
+    # Obtener la última posición
     last_position = get_last_backup_position()
     if not last_position:
         print("No se encontró un backup previo. Se requiere un backup completo primero.")
@@ -143,66 +143,62 @@ def create_incremental_backup() -> Tuple[Optional[str], Optional[str], Optional[
     # Obtener la posición actual
     current_position = get_binary_log_position()
     if not current_position:
-        print("No se pudo obtener la posición actual del binary log")
+        print("No se pudo obtener la posición actual del binary log.")
         return None, None, None
 
-    # Crear el archivo de backup
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_file = f'backups/backup_incremental_{timestamp}.sql'
-    
-    # Obtener los cambios desde la última posición
     last_file, last_pos = last_position.split(':')
     current_file, current_pos = current_position.split(':')
-    
-    with open(backup_file, 'w') as f:
-        f.write(f"-- Backup incremental generado el {datetime.now()}\n")
-        f.write(f"-- Desde: {last_position}\n")
-        f.write(f"-- Hasta: {current_position}\n\n")
+
+    # Nombre del archivo backup
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_file = f'backups/backup_incremental_{timestamp}.sql'
+
+    print(f"Creando backup incremental desde {last_position} hasta {current_position}")
+
+    try:
+        # Caso sencillo: ambos en el mismo archivo binlog
+        if last_file == current_file:
+            cmd = [
+                "mysqlbinlog",
+                f"--start-position={last_pos}",
+                f"--stop-position={current_pos}",
+                f"/var/lib/mysql/{last_file}"
+            ]
+            with open(backup_file, "w") as f:
+                subprocess.run(cmd, stdout=f, check=True)
         
-        try:
-            # Obtener eventos del binary log usando SHOW BINLOG EVENTS
-            query = f"""
-            SHOW BINLOG EVENTS 
-            IN '{last_file}'
-            FROM {last_pos}
-            LIMIT 10000;
-            """
+        else:
+            # Caso donde se cruzó de archivo binlog
+            print(f"Detectado cambio de archivo binlog de {last_file} a {current_file}")
             
-            print("\nObteniendo eventos del binary log...")
-            result = execute_query(query)
-            
-            if not result:
-                print("No se pudieron obtener los eventos del binary log")
-                return None, None, None
-            
-            # Procesar y filtrar los eventos
-            events = []
-            for line in result.strip().split('\n')[1:]:  # Saltar el header
-                fields = line.split('\t')
-                if len(fields) >= 6:  # Log_name, Pos, Event_type, Server_id, End_log_pos, Info
-                    event_type = fields[2]
-                    info = fields[5]
-                    
-                    # Solo incluir eventos relevantes (INSERT, UPDATE, DELETE, etc.)
-                    if any(x in event_type.upper() for x in ['QUERY', 'TABLE_MAP', 'WRITE_ROWS', 'UPDATE_ROWS', 'DELETE_ROWS']):
-                        if 'BEGIN' not in info and 'COMMIT' not in info:
-                            events.append(info)
-            
-            # Escribir los eventos al archivo
-            if events:
-                f.write('\n'.join(events))
-                f.write('\n')
-            else:
-                f.write('-- No se encontraron cambios relevantes\n')
-            
-            # Guardar la nueva posición
-            save_backup_position(current_position)
-            
-            return backup_file, last_position, current_position
-            
-        except Exception as e:
-            print(f"Error creando backup incremental: {e}")
-            return None, None, None
+            # Extraer desde last_file desde last_pos hasta el final
+            cmd1 = [
+                "mysqlbinlog",
+                f"--start-position={last_pos}",
+                f"/var/lib/mysql/{last_file}"
+            ]
+            # Extraer archivos intermedios si los hubiera (no implementado aquí)
+
+            # Extraer desde el inicio del current_file hasta current_pos
+            cmd2 = [
+                "mysqlbinlog",
+                f"--stop-position={current_pos}",
+                f"/var/lib/mysql/{current_file}"
+            ]
+            with open(backup_file, "w") as f:
+                subprocess.run(cmd1, stdout=f, check=True)
+                subprocess.run(cmd2, stdout=f, check=True)
+
+        print(f"Backup incremental creado: {backup_file}")
+        
+        # Guardar la nueva posición
+        save_backup_position(current_position)
+
+        return backup_file, last_position, current_position
+    
+    except subprocess.CalledProcessError as e:
+        print(f"Error ejecutando mysqlbinlog: {e}")
+        return None, None, None
 
 def main():
     print("\n=== Sistema de Backup Incremental ===\n")

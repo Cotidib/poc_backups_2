@@ -29,7 +29,6 @@ services:
     volumes:
       - ./backup_completo.py:/app/backup_completo.py
       - ./backup_incremental.py:/app/backup_incremental.py
-      - ./test_incremental_backup.py:/app/test_incremental_backup.py
       - ./db_config.py:/app/db_config.py
       - ./db_utils.py:/app/db_utils.py
       - ./disaster_simulator.py:/app/disaster_simulator.py
