@@ -202,78 +202,11 @@ def create_incremental_backup() -> Tuple[Optional[str], Optional[str], Optional[
         print(f"Error ejecutando mysqlbinlog: {e}")
         return None, None, None
 
-# def restore_incremental_backup(backup_file: str) -> bool:
-#     """
-#     Restaura un backup incremental aplicando el archivo generado por mysqlbinlog.
-
-#     Args:
-#         backup_file (str): Ruta al archivo incremental .sql
-
-#     Returns:
-#         bool: True si se restauró correctamente, False si hubo errores.
-#     """
-#     print(f"\nIniciando restauración del backup incremental: {backup_file}\n")
-
-#     # Validar archivo
-#     if not os.path.isfile(backup_file):
-#         print(f"✗ Error: el archivo {backup_file} no existe.")
-#         return False
-
-#     # Leer configuración de conexión
-#     db_conf = DatabaseConfig()
-#     cmd = [
-#         "mysql",
-#         f"-h{db_conf.HOST}",
-#         f"-P{db_conf.PORT}",
-#         f"-u{db_conf.USER}",
-#         f"-p{db_conf.PASSWORD}",
-#         db_conf.DATABASE
-#     ]
-
-#     try:
-#         # Primero leemos el contenido del archivo para verificar
-#         print("Verificando contenido del archivo de backup...")
-#         with open(backup_file, "r") as f:
-#             backup_content = f.read()
-#             if not backup_content.strip():
-#                 print("✗ Error: El archivo de backup está vacío")
-#                 return False
-#             print(f"Tamaño del archivo de backup: {len(backup_content)} bytes")
-
-#         # Intentamos restaurar usando subprocess con captura de stderr
-#         print("\nEjecutando restauración...")
-#         process = subprocess.run(
-#             cmd,
-#             input=backup_content,
-#             text=True,
-#             capture_output=True,
-#             check=True
-#         )
-        
-#         if process.stderr:
-#             print("Advertencias durante la restauración:")
-#             print(process.stderr)
-            
-#         print("✓ Backup incremental restaurado correctamente.")
-#         return True
-        
-#     except subprocess.CalledProcessError as e:
-#         print(f"✗ Error restaurando el backup incremental:")
-#         print(f"Código de salida: {e.returncode}")
-#         if e.stdout:
-#             print("Salida estándar:")
-#             print(e.stdout)
-#         if e.stderr:
-#             print("Salida de error:")
-#             print(e.stderr)
-#         return False
-#     except Exception as e:
-#         print(f"✗ Error inesperado restaurando el backup incremental: {e}")
-#         return False
-
 def restore_incremental_backup(backup_file: str) -> bool:
     """
     Restaura un backup incremental aplicando el archivo generado por mysqlbinlog.
+    Este proceso incluye primero restaurar el último backup completo y luego aplicar
+    los cambios incrementales.
 
     Args:
         backup_file (str): Ruta al archivo incremental .sql
@@ -281,14 +214,34 @@ def restore_incremental_backup(backup_file: str) -> bool:
     Returns:
         bool: True si se restauró correctamente, False si hubo errores.
     """
-    print(f"\nIniciando restauración del backup incremental: {backup_file}\n")
+    print(f"\nIniciando proceso de restauración completa + incremental\n")
 
-    # Validar archivo
+    # Validar archivo incremental
     if not os.path.isfile(backup_file):
         print(f"✗ Error: el archivo {backup_file} no existe.")
         return False
 
-    # Leer configuración de conexión (o modificar los valores aquí si tu db_config no tiene credenciales)
+    # Primero encontrar y restaurar el último backup completo
+    print("\n=== Paso 1: Restaurando el último backup completo ===")
+    backup_dir = "backups"
+    full_backups = [f for f in os.listdir(backup_dir) if f.startswith("backup_completo_")]
+    if not full_backups:
+        print("✗ Error: No se encontró un backup completo")
+        return False
+    
+    latest_full_backup = os.path.join(backup_dir, sorted(full_backups)[-1])
+    print(f"Restaurando desde: {latest_full_backup}")
+    
+    if not restore_full_backup(latest_full_backup):
+        print("✗ Error al restaurar el backup completo")
+        return False
+    
+    print("✓ Backup completo restaurado correctamente")
+
+    # Ahora restaurar el backup incremental
+    print("\n=== Paso 2: Aplicando backup incremental ===")
+    
+    # Leer configuración de conexión
     db_params = DatabaseConfig.get_connection_params()
     cmd = [
         "mysql",
@@ -302,12 +255,11 @@ def restore_incremental_backup(backup_file: str) -> bool:
     try:
         with open(backup_file, "r") as f:
             subprocess.run(cmd, stdin=f, check=True)
-        print("✓ Backup incremental restaurado correctamente.")
+        print("✓ Backup incremental restaurado correctamente")
         return True
     except subprocess.CalledProcessError as e:
         print(f"✗ Error restaurando el backup incremental: {e}")
         return False
-
 
 def main():
     print("\n=== Sistema de Backup Incremental ===\n")
@@ -363,36 +315,15 @@ def main():
             print("✗ Error al simular el desastre")
             return
 
-        # Restaurar el último backup completo
-        print("\n=== Restaurando el último backup completo ===")
-        # Encontrar el último backup completo
-        backup_dir = "backups"
-        full_backups = [f for f in os.listdir(backup_dir) if f.startswith("backup_completo_")]
-        if not full_backups:
-            print("✗ Error: No se encontró un backup completo")
-            return
-        latest_full_backup = os.path.join(backup_dir, sorted(full_backups)[-1])
-        
-        print(f"Restaurando desde: {latest_full_backup}")
-        if restore_full_backup(latest_full_backup):
-            print("✓ Backup completo restaurado correctamente")
-            print("\nEstado de la tabla después de restaurar backup completo:")
-            show_table_data('employees')
-        else:
-            print("✗ Error al restaurar el backup completo")
-            return
-
-        # Restaurar el backup incremental
-        print("\n=== Restaurando el backup incremental ===")
+        # Restaurar usando el backup incremental (que incluye restaurar el backup completo)
+        print("\n=== Iniciando proceso de restauración ===")
         if restore_incremental_backup(backup_file):
-            print("✓ Backup incremental restaurado correctamente")
-            print("\nEstado final de la tabla después de restaurar backup incremental:")
+            print("\nEstado final de la tabla después de la restauración:")
             show_table_data('employees')
+            print("\n¡Proceso completo de backup y restauración finalizado exitosamente!")
         else:
-            print("✗ Error al restaurar el backup incremental")
+            print("✗ Error durante el proceso de restauración")
             return
-
-        print("\n¡Proceso completo de backup y restauración finalizado exitosamente!")
     else:
         print("\n✗ Error: No se pudo crear el backup incremental")
         print("Asegúrate de haber realizado un backup completo primero")
