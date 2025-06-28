@@ -102,23 +102,14 @@ def get_binary_log_position() -> Optional[str]:
             return None
             
         print("Obteniendo posición del binary log...")
-        print(f"Resultado de SHOW MASTER STATUS: '{result}'")
         
         # Parsear el resultado
-        lines = result.strip().split('\n')
-        print(f"Líneas encontradas: {len(lines)}")
-        for i, line in enumerate(lines):
-            print(f"Línea {i}: '{line}'")
-            
+        lines = result.strip().split('\n')        
         if len(lines) < 2:
             return None
             
         # La segunda línea contiene los datos
         fields = lines[1].split()
-        print(f"Campos encontrados: {len(fields)}")
-        for i, field in enumerate(fields[:2]):  # Solo mostrar los primeros dos campos
-            print(f"Campo {i}: '{field}'")
-            
         if len(fields) < 2:
             return None
             
@@ -264,7 +255,11 @@ def restore_incremental_backup(backup_file: str) -> bool:
 def main():
     print("\n=== Sistema de Backup Incremental ===\n")
     
-    print("Realizando cambios de prueba en la base de datos...\n")
+    print("Estado inicial de la tabla employees:")
+    if not show_table_data('employees'):
+        print("✗ Error al mostrar los datos de la tabla\n")
+    
+    print("\nRealizando cambios de prueba en la base de datos...\n")
 
     # 1. Actualizar un empleado existente
     print("1. Actualizando empleado existente...")
