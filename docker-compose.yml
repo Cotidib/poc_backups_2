@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    command: --log-bin=/var/lib/mysql/mysql-bin.log --binlog-format=ROW --server-id=1
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - backup-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "test_user", "--password=test_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backup:
+    build: .
+    container_name: python-backup
+    volumes:
+      - ./backup_completo.py:/app/backup_completo.py
+      - ./backup_incremental.py:/app/backup_incremental.py
+      - ./test_incremental_backup.py:/app/test_incremental_backup.py
+      - ./db_config.py:/app/db_config.py
+      - ./db_utils.py:/app/db_utils.py
+      - ./disaster_simulator.py:/app/disaster_simulator.py
+      - ./backups:/app/backups
+      - mysql_data:/var/lib/mysql:ro
+    depends_on:
+      - db
+    networks:
+      - backup-network
+
+networks:
+  backup-network:
+    driver: bridge
+
+volumes:
+  mysql_data: 
