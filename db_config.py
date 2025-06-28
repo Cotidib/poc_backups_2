@@ -9,6 +9,7 @@ class DatabaseConfig:
     USER = "test_user"
     PASSWORD = "test_password"
     DATABASE = "test_db"
+    PORT = 3306
 
     @staticmethod
     def get_connection_params():

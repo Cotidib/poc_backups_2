@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS employees (
 
 -- Insertar algunos datos de ejemplo
 INSERT INTO employees (name, position) VALUES
-    ('Juan Pérez', 'Developer'),
-    ('María García', 'Project Manager'),
-    ('Carlos Rodríguez', 'QA Engineer');
+    ('Juan Perez', 'Developer'),
+    ('Maria Garcia', 'Project Manager'),
+    ('Carlos Rodriguez', 'QA Engineer');
 
 -- Dar privilegios al usuario test_user
 -- Primero asegurarnos de que el usuario existe
